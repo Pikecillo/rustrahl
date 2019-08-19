@@ -329,14 +329,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ray-tracer"
-version = "0.1.0"
-dependencies = [
- "rand 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sdl2 0.32.2 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
 name = "rdrand"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -389,6 +381,21 @@ dependencies = [
  "libc 0.2.60 (registry+https://github.com/rust-lang/crates.io-index)",
  "tar 0.4.26 (registry+https://github.com/rust-lang/crates.io-index)",
  "unidiff 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "strahl"
+version = "0.1.0"
+dependencies = [
+ "rand 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "strahl-app"
+version = "0.1.0"
+dependencies = [
+ "sdl2 0.32.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "strahl 0.1.0",
 ]
 
 [[package]]
