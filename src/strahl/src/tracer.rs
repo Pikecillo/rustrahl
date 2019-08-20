@@ -98,13 +98,13 @@ impl Traceable for Sphere {
 	}
 }
 
-struct Plane {
+pub struct Plane {
 	point: Vec3f,
 	normal: Vec3f
 }
 
 impl Plane {
-	fn new(point: Vec3f, normal: Vec3f) -> Plane {
+	pub fn new(point: Vec3f, normal: Vec3f) -> Plane {
 		return Plane{point, normal};
 	}
 }
@@ -118,29 +118,33 @@ impl Traceable for Plane {
 		}
 
 		let origin_to_point = &self.point - &ray.origin;
-		let t = (&origin_to_point).dot(&self.normal);
+		let t = &origin_to_point.dot(&self.normal) / direction_dot_normal;
+
+		if t <= 1e-06 {
+			return Hit::miss();
+		}
 
 		return Hit::new(t, self.normal.clone(), ray.at(t));
 	}
 }
 
 pub struct Scene {
-	spheres: vec::Vec<Sphere>
+	objects: vec::Vec<Box<Traceable>>
 }
 
 impl Scene {
 	pub fn new() -> Scene {
-		return Scene{spheres: vec!()};
+		return Scene{objects: vec!()};
 	}
 
-	pub fn add_sphere(&mut self, sphere: Sphere) {
-		self.spheres.push(sphere);
+	pub fn add_object(&mut self, object: Box<Traceable>) {
+		self.objects.push(object);
 	}
 
 	fn ray_cast(&self, ray: &Ray) -> Hit {
 		let mut hit = Hit::miss();
-		for sphere in &self.spheres {
-			let current_hit = sphere.hit(&ray);
+		for object in self.objects.iter() {
+			let current_hit = object.hit(&ray);
 			&hit.update(&current_hit);
 		}
 

@@ -6,7 +6,6 @@ use sdl2::pixels::PixelFormatEnum;
 use sdl2::rect::Rect;
 
 use std::time;
-
 use std::vec;
 
 fn render(screen_width: u32, screen_height: u32) -> vec::Vec<u8> {
@@ -23,11 +22,14 @@ fn render(screen_width: u32, screen_height: u32) -> vec::Vec<u8> {
 
 	let mut scene = strahl::tracer::Scene::new();
 
+	let radius = 1.0;
 	for x in -9 .. 10 {
 		for z in -18 .. 1 {
-			&scene.add_sphere(strahl::tracer::Sphere::new(strahl::vec::Vec3f::new(x as f32 * 2.0, 0.0, z as f32 * 2.0), 1.0));
+			&scene.add_object(Box::new(strahl::tracer::Sphere::new(strahl::vec::Vec3f::new(x as f32 * 2.0, 0.0, z as f32 * 2.0), radius)));
 		}
 	}
+
+	&scene.add_object(Box::new(strahl::tracer::Plane::new(strahl::vec::Vec3f::new(0.0, -radius, 0.0), up.clone())));
 
 	let hits = &scene.trace(&camera.generate_rays(screen_width, screen_height));
 	let ao_coefficients = &scene.ambient_occlusion(&hits, ao_samples);
