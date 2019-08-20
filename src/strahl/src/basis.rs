@@ -7,7 +7,14 @@ pub struct OrthonormalBasis {
 }
 
 impl OrthonormalBasis {
-	pub fn from_vw(v: Vec3f, w: Vec3f) -> OrthonormalBasis {
+	pub fn eval(&self, local_x: f32, local_y: f32, local_z: f32) -> Vec3f {
+		let x = &self.u * local_x;
+		let y = &self.v * local_y;
+		let z = &self.w * local_z;
+		return &(&x + &y) + &z;
+	}
+
+	pub fn from_vw(v: &Vec3f, w: &Vec3f) -> OrthonormalBasis {
 		let w = w.normalized();
 		let mut u = w.cross(&v.normalized());
 
@@ -25,7 +32,7 @@ impl OrthonormalBasis {
 		};
 	}
 
-	pub fn from_u(u: Vec3f) -> OrthonormalBasis {
+	pub fn from_u(u: &Vec3f) -> OrthonormalBasis {
 		let u = u.normalized();
 		let mut v = u.cross(&Vec3f::new(0.0, 0.0, 1.0));
 

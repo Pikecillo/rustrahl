@@ -13,17 +13,17 @@ pub struct Ray {
 }
 
 impl Ray {
-	pub fn new(origin: Vec3f, direction: Vec3f) -> Ray {
+	pub fn new(origin: Vec3f, direction: &Vec3f) -> Ray {
 		let normalized_direction = direction.normalized();
 		return Ray {origin, direction: normalized_direction};
 	}
 
 	pub fn at(&self, t: f32) -> Vec3f {
-		return self.origin + self.direction * t;
+		return &self.origin + &(&self.direction * t);
 	}
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Debug)]
 pub struct Hit {
 	pub t: f32,
 	pub normal: Vec3f,
@@ -42,12 +42,12 @@ impl Hit {
 	pub fn update(&mut self, other: &Hit) {
 		if !other.is_miss() && other.t < self.t {
 			self.t = other.t;
-			self.normal = other.normal;
-			self.point = other.point;
+			self.normal = other.normal.clone();
+			self.point = other.point.clone();
 		}
 	}
 
-	pub fn is_miss(self) -> bool {
+	pub fn is_miss(&self) -> bool {
 		return self.t == f32::INFINITY;
 	}
 }
@@ -70,14 +70,14 @@ impl Sphere {
 
 impl Traceable for Sphere {
 	fn hit(&self, ray: &Ray) -> Hit {
-		let center = self.center;
-		let origin = ray.origin;
-		let direction = ray.direction;
+		let center = &self.center;
+		let origin = &ray.origin;
+		let direction = &ray.direction;
 		let oc = origin - center;
 
-		let a = direction.dot(&direction);
-		let b = 2.0 * oc.dot(&direction);
-		let c = oc.dot(&oc) - self.radius * self.radius;
+		let a = direction.dot(direction);
+		let b = 2.0 * &oc.dot(direction);
+		let c = &oc.dot(&oc) - self.radius * self.radius;
 		
 		let discriminant = b * b - 4.0 * a * c;
 
@@ -92,7 +92,7 @@ impl Traceable for Sphere {
 		}
 
 		let hit_point = ray.at(t);
-		let normal = hit_point - center;
+		let normal = &hit_point - center;
 
 		return Hit::new(t, normal.normalized(), hit_point);
 	}
@@ -111,15 +111,16 @@ impl Plane {
 
 impl Traceable for Plane {
 	fn hit(&self, ray: &Ray) -> Hit {
-		let dn = ray.direction.dot(&self.normal);
+		let direction_dot_normal = ray.direction.dot(&self.normal);
 
-		if dn.abs() < 1e-06 {
+		if direction_dot_normal.abs() < 1e-06 {
 			return Hit::miss();
 		}
 
-		let t = (self.point - ray.origin).dot(&self.normal);
+		let origin_to_point = &self.point - &ray.origin;
+		let t = (&origin_to_point).dot(&self.normal);
 
-		return Hit::new(t, self.normal, ray.at(t));
+		return Hit::new(t, self.normal.clone(), ray.at(t));
 	}
 }
 
@@ -174,7 +175,7 @@ impl Scene {
 
 		for hit in hits {
 			if !hit.is_miss() {
-				let rays = sample_hemisphere(hit.point, hit.normal, samples);
+				let rays = sample_hemisphere(&hit.point, &hit.normal, samples);
 				ao_coefficients.push(self.occlusion(&rays));
 			} else {
 				ao_coefficients.push(0.0);
@@ -185,7 +186,7 @@ impl Scene {
 	}
 }
 
-fn sample_hemisphere(center: Vec3f, normal: Vec3f, samples: u32) -> vec::Vec<Ray> {
+fn sample_hemisphere(center: &Vec3f, normal: &Vec3f, samples: u32) -> vec::Vec<Ray> {
 	let mut rays : vec::Vec<Ray> = vec!();
 	let mut rng = rand::thread_rng();
 	let frame = OrthonormalBasis::from_u(normal);
@@ -193,8 +194,8 @@ fn sample_hemisphere(center: Vec3f, normal: Vec3f, samples: u32) -> vec::Vec<Ray
 	for _i in 0 .. samples {
     	let height: f32 = rng.gen_range(0.0, 1.0);
     	let angle: f32 = rng.gen_range(0.0, 2.0 * std::f32::consts::PI);
-		let direction = frame.u * height + frame.v * angle.cos() + frame.w * angle.sin();
-		rays.push(Ray::new(center, direction));
+		let direction = &frame.eval(height, angle.cos(), angle.sin());
+		rays.push(Ray::new(center.clone(), direction));
 	}
 
 	return rays;

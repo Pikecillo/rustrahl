@@ -1,6 +1,6 @@
 use std::ops;
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Debug)]
 pub struct Vec3f {
 	pub x: f32,
 	pub y: f32,
@@ -30,29 +30,53 @@ impl Vec3f {
 		return self.dot(self).sqrt();
 	}
 
-	pub fn normalized(self) -> Vec3f {
+	pub fn normalized(&self) -> Vec3f {
 		let len = self.length();
 		return self * (1.0 / len);
 	}
 }
 
-impl ops::Add for Vec3f {
+impl ops::Add<&Vec3f> for Vec3f {
 	type Output = Vec3f;
 
-	fn add(self, rhs: Vec3f) -> Vec3f {
+	fn add(self, rhs: &Vec3f) -> Vec3f {
 		return Vec3f::new(self.x + rhs.x, self.y + rhs.y, self.z + rhs.z);
 	}
 }
 
-impl ops::Sub for Vec3f {
+impl ops::Add for &Vec3f {
 	type Output = Vec3f;
 
-	fn sub(self, rhs: Vec3f) -> Vec3f {
+	fn add(self, rhs: &Vec3f) -> Vec3f {
+		return Vec3f::new(self.x + rhs.x, self.y + rhs.y, self.z + rhs.z);
+	}
+}
+
+impl ops::Sub<&Vec3f> for Vec3f {
+	type Output = Vec3f;
+
+	fn sub(self, rhs: &Vec3f) -> Vec3f {
+		return Vec3f::new(self.x - rhs.x, self.y - rhs.y, self.z - rhs.z);
+	}
+}
+
+impl ops::Sub for &Vec3f {
+	type Output = Vec3f;
+
+	fn sub(self, rhs: &Vec3f) -> Vec3f {
 		return Vec3f::new(self.x - rhs.x, self.y - rhs.y, self.z - rhs.z);
 	}
 }
 
 impl ops::Mul<f32> for Vec3f {
+	type Output = Vec3f;
+
+	fn mul(self, scalar: f32) -> Vec3f {
+		return Vec3f::new(self.x * scalar, self.y * scalar, self.z * scalar);
+	}
+}
+
+impl ops::Mul<f32> for &Vec3f {
 	type Output = Vec3f;
 
 	fn mul(self, scalar: f32) -> Vec3f {

@@ -5,6 +5,8 @@ use sdl2::pixels::Color;
 use sdl2::pixels::PixelFormatEnum;
 use sdl2::rect::Rect;
 
+use std::time;
+
 use std::vec;
 
 fn render(screen_width: u32, screen_height: u32) -> vec::Vec<u8> {
@@ -15,9 +17,9 @@ fn render(screen_width: u32, screen_height: u32) -> vec::Vec<u8> {
 	let width = 3.0 * aspect_ratio;
 	let height = 3.0;
 	let far = 3.0;
-	let camera = strahl::camera::PerspectiveCamera::new(eye, look_at, up,
+	let camera = strahl::camera::PerspectiveCamera::new(eye, &look_at, &up,
 		height, width, far);
-	let ao_samples = 1;
+	let ao_samples = 4;
 
 	let mut scene = strahl::tracer::Scene::new();
 
@@ -32,7 +34,7 @@ fn render(screen_width: u32, screen_height: u32) -> vec::Vec<u8> {
 	let mut framebuffer = vec![0; hits.len() * 3];
 
 	for i in 0 .. hits.len() {
-		let hit = hits[i];
+		let hit = &hits[i];
 		if hit.is_miss() {
 			framebuffer[3 * i] = 0;
 			framebuffer[3 * i + 1] = 0;
@@ -43,12 +45,6 @@ fn render(screen_width: u32, screen_height: u32) -> vec::Vec<u8> {
 			framebuffer[3 * i] = (255.0 * (1.0 - attenuation)) as u8;
 			framebuffer[3 * i + 1] = (255.0 * (1.0 - attenuation)) as u8;
 			framebuffer[3 * i + 2] = (255.0 * (1.0 - attenuation)) as u8;
-			//framebuffer[3 * i] = (255.0 * hit.normal.x.abs()) as u8;
-			//framebuffer[3 * i + 1] = (255.0 * hit.normal.y.abs()) as u8;
-			//framebuffer[3 * i + 2] = (255.0 * hit.normal.z.abs()) as u8;
-			framebuffer[3 * i] = (255.0 * (1.0 - attenuation) * hit.normal.x.abs()) as u8;
-			framebuffer[3 * i + 1] = (255.0 * (1.0 - attenuation) * hit.normal.y.abs()) as u8;
-			framebuffer[3 * i + 2] = (255.0 * (1.0 - attenuation) * hit.normal.z.abs()) as u8;
 		}
 	}
 
@@ -74,7 +70,9 @@ fn main() -> Result<(), String> {
 
 	let texture_creator = canvas.texture_creator();
 
+	let instant = time::Instant::now();
 	let framebuffer = render(width, height);
+	println!("Rendering time {} sec", instant.elapsed().as_secs());
 
     let mut texture = texture_creator.create_texture_streaming(PixelFormatEnum::RGB24, width, height)
         .map_err(|e| e.to_string())?;
